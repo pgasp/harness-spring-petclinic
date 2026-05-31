@@ -31,6 +31,8 @@ metadata:
   name: demo-db
   labels:
     app: demo-db
+  annotations:
+    harness.io/direct-apply: "true"
 spec:
   selector:
     matchLabels:
