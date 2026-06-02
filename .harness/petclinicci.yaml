@@ -1,0 +1,167 @@
+pipeline:
+  name: petclinic-ci
+  identifier: petclinicci
+  projectIdentifier: default_project
+  orgIdentifier: default
+  properties:
+    ci:
+      codebase:
+        connectorRef: git_petclinic
+        repoName: harness-spring-petclinic
+        build: <+input>
+  stages:
+    - stage:
+        name: BuildAndTest
+        identifier: Build_and_Test
+        type: CI
+        spec:
+          cloneCodebase: true
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: k8slocal
+              namespace: harness-build
+              os: Linux
+              volumes:
+                - mountPath: /root/.m2
+                  type: HostPath
+                  spec:
+                    path: /Users/pascal.gasp/.m2
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Compile
+                  identifier: Compile
+                  spec:
+                    connectorRef: pgasp_docker_hub
+                    image: maven:3.9-eclipse-temurin-17
+                    shell: Sh
+                    envVariables:
+                      MAVEN_OPTS: "-XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=50.0"
+                    resources:
+                      limits:
+                        memory: 1Gi
+                        cpu: "1"
+                    command: ./mvnw -B compile -q
+              - step:
+                  type: Run
+                  name: UnitTests
+                  identifier: UnitTests
+                  spec:
+                    connectorRef: pgasp_docker_hub
+                    image: maven:3.9-eclipse-temurin-17
+                    shell: Sh
+                    envVariables:
+                      MAVEN_OPTS: "-XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=50.0"
+                    resources:
+                      limits:
+                        memory: 1Gi
+                        cpu: "1"
+                    command: ./mvnw -B test -Dsurefire.excludes='**/*IntegrationTests.java'
+                    reports:
+                      type: JUnit
+                      spec:
+                        paths:
+                          - "**/surefire-reports/*.xml"
+              - step:
+                  type: Run
+                  name: Package
+                  identifier: Package
+                  spec:
+                    connectorRef: pgasp_docker_hub
+                    image: maven:3.9-eclipse-temurin-17
+                    shell: Sh
+                    envVariables:
+                      MAVEN_OPTS: "-XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=50.0"
+                    resources:
+                      limits:
+                        memory: 1Gi
+                        cpu: "1"
+                    command: ./mvnw -B package -DskipTests -q
+              - step:
+                  type: BuildAndPushDockerRegistry
+                  name: Build and Push Image
+                  identifier: Build_and_Push_Image
+                  spec:
+                    connectorRef: pgasp_docker_hub
+                    repo: pgasp/harness-spring-petclinic
+                    tags:
+                      - latest
+                      - <+pipeline.sequenceId>
+    - stage:
+        name: deployment
+        identifier: deployment
+        description: ""
+        type: Deployment
+        spec:
+          deploymentType: Kubernetes
+          service:
+            serviceRef: petclinic
+            serviceInputs:
+              serviceDefinition:
+                type: Kubernetes
+                spec:
+                  artifacts:
+                    primary:
+                      primaryArtifactRef: <+input>
+                      sources: <+input>
+          environment:
+            environmentRef: dev_petclinic
+            deployToAll: false
+            infrastructureDefinitions:
+              - identifier: dev
+          execution:
+            steps:
+              - stepGroup:
+                  name: Canary Deployment
+                  identifier: canaryDeployment
+                  steps:
+                    - step:
+                        name: Canary Deployment
+                        identifier: canaryDeployment
+                        type: K8sCanaryDeploy
+                        timeout: 10m
+                        spec:
+                          instanceSelection:
+                            type: Count
+                            spec:
+                              count: 1
+                          skipDryRun: false
+                    - step:
+                        name: Canary Delete
+                        identifier: canaryDelete
+                        type: K8sCanaryDelete
+                        timeout: 10m
+                        spec: {}
+              - stepGroup:
+                  name: Primary Deployment
+                  identifier: primaryDeployment
+                  steps:
+                    - step:
+                        name: Rolling Deployment
+                        identifier: rollingDeployment
+                        type: K8sRollingDeploy
+                        timeout: 10m
+                        spec:
+                          skipDryRun: false
+            rollbackSteps:
+              - step:
+                  name: Canary Delete
+                  identifier: rollbackCanaryDelete
+                  type: K8sCanaryDelete
+                  timeout: 10m
+                  spec: {}
+              - step:
+                  name: Rolling Rollback
+                  identifier: rollingRollback
+                  type: K8sRollingRollback
+                  timeout: 10m
+                  spec: {}
+        tags: {}
+        failureStrategies:
+          - onFailure:
+              errors:
+                - AllErrors
+              action:
+                type: StageRollback
