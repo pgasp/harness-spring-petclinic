@@ -258,7 +258,7 @@ pipeline:
                       minimumCount: 1
                       disallowPipelineExecutor: false
                       userGroups:
-                        - account._all_account_users
+                        - _project_all_users
                     isAutoRejectEnabled: false
                     approverInputs: []
         tags: {}
