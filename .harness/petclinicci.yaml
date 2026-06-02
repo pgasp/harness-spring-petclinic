@@ -186,7 +186,7 @@ pipeline:
             environmentRef: dev_petclinic
             deployToAll: false
             infrastructureDefinitions:
-              - identifier: dev
+              - identifier: uat
           execution:
             steps:
               - stepGroup:
@@ -284,7 +284,7 @@ pipeline:
             environmentRef: dev_petclinic
             deployToAll: false
             infrastructureDefinitions:
-              - identifier: dev
+              - identifier: prod
           execution:
             steps:
               - stepGroup:
