@@ -13,82 +13,19 @@ pipeline:
     - stage:
         name: BuildAndTest
         identifier: Build_and_Test
-        type: CI
-        spec:
-          cloneCodebase: true
-          infrastructure:
-            type: KubernetesDirect
+        template:
+          templateRef: Maven_Build_and_Push
+          versionLabel: "1.0"
+          templateInputs:
+            type: CI
             spec:
-              connectorRef: k8slocal
-              namespace: harness-build
-              os: Linux
-              volumes:
-                - mountPath: /root/.m2
-                  type: HostPath
-                  spec:
-                    path: /Users/pascal.gasp/.m2
-          execution:
-            steps:
-              - step:
-                  type: Run
-                  name: Compile
-                  identifier: Compile
-                  spec:
-                    connectorRef: pgasp_docker_hub
-                    image: maven:3.9-eclipse-temurin-17
-                    shell: Sh
-                    envVariables:
-                      MAVEN_OPTS: "-XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=50.0"
-                    resources:
-                      limits:
-                        memory: 1Gi
-                        cpu: "1"
-                    command: ./mvnw -B compile -q
-              - step:
-                  type: Run
-                  name: UnitTests
-                  identifier: UnitTests
-                  spec:
-                    connectorRef: pgasp_docker_hub
-                    image: maven:3.9-eclipse-temurin-17
-                    shell: Sh
-                    envVariables:
-                      MAVEN_OPTS: "-XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=50.0"
-                    resources:
-                      limits:
-                        memory: 1Gi
-                        cpu: "1"
-                    command: ./mvnw -B test -Dsurefire.excludes='**/*IntegrationTests.java'
-                    reports:
-                      type: JUnit
+              execution:
+                steps:
+                  - step:
+                      identifier: Build_and_Push_Image
+                      type: BuildAndPushDockerRegistry
                       spec:
-                        paths:
-                          - "**/surefire-reports/*.xml"
-              - step:
-                  type: Run
-                  name: Package
-                  identifier: Package
-                  spec:
-                    connectorRef: pgasp_docker_hub
-                    image: maven:3.9-eclipse-temurin-17
-                    shell: Sh
-                    envVariables:
-                      MAVEN_OPTS: "-XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=50.0"
-                    resources:
-                      limits:
-                        memory: 1Gi
-                        cpu: "1"
-                    command: ./mvnw -B package -DskipTests -q
-              - step:
-                  type: BuildAndPushDockerRegistry
-                  name: Build and Push Image
-                  identifier: Build_and_Push_Image
-                  spec:
-                    connectorRef: pgasp_docker_hub
-                    repo: pgasp/harness-spring-petclinic
-                    tags:
-                      - latest
-                      - <+pipeline.sequenceId>
+                        repo: pgasp/harness-spring-petclinic
     - stage:
         name: Deploy DEV
         identifier: deployment
