@@ -58,7 +58,7 @@ pipeline:
                         pgasp/harness-spring-petclinic:<+pipeline.sequenceId>
                   when:
                     stageStatus: Success
-                    condition: 1=0
+                    condition: 1==0
     - stage:
         name: Deploy DEV
         identifier: deployment
