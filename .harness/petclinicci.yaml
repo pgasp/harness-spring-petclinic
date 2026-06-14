@@ -27,39 +27,6 @@ pipeline:
                       spec:
                         repo: pgasp/harness-spring-petclinic
     - stage:
-        name: Security Scan
-        identifier: Security_Scan
-        type: CI
-        spec:
-          cloneCodebase: false
-          infrastructure:
-            type: KubernetesDirect
-            spec:
-              connectorRef: k8slocal
-              namespace: harness-build
-              automountServiceAccountToken: true
-              nodeSelector: {}
-              os: Linux
-          execution:
-            steps:
-              - step:
-                  type: Run
-                  name: Trivy Image Scan
-                  identifier: Trivy_Image_Scan
-                  spec:
-                    connectorRef: pgasp_docker_hub
-                    image: aquasec/trivy:latest
-                    shell: Sh
-                    command: |-
-                      trivy image \
-                        --exit-code 0 \
-                        --severity HIGH,CRITICAL \
-                        --no-progress \
-                        pgasp/harness-spring-petclinic:<+pipeline.sequenceId>
-                  when:
-                    stageStatus: Success
-                    condition: 1==0
-    - stage:
         name: Deploy DEV
         identifier: deployment
         description: ""
