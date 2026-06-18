@@ -63,49 +63,48 @@ pipeline:
                       access_id: pgasp
                       access_token: <+secrets.getValue("docker_hub")>
                       domain: docker.io
-    - parallel:
-      - stage:
-          name: Deploy DEV
-          identifier: deployment
-          template:
-            templateRef: K8s_Canary_Rolling_Deploy
-            versionLabel: "1.0"
-            templateInputs:
-              type: Deployment
-              spec:
-                service:
-                  serviceInputs:
-                    serviceDefinition:
-                      type: Kubernetes
-                      spec:
-                        artifacts:
-                          primary:
-                            primaryArtifactRef: <+input>
-                            sources: <+input>
-                environment:
-                  infrastructureDefinitions:
-                    - identifier: dev
-      - stage:
-          name: Deploy UAT
-          identifier: Deploy_UAT
-          template:
-            templateRef: K8s_Canary_Rolling_Deploy
-            versionLabel: "1.0"
-            templateInputs:
-              type: Deployment
-              spec:
-                service:
-                  serviceInputs:
-                    serviceDefinition:
-                      type: Kubernetes
-                      spec:
-                        artifacts:
-                          primary:
-                            primaryArtifactRef: <+input>
-                            sources: <+input>
-                environment:
-                  infrastructureDefinitions:
-                    - identifier: uat
+    - stage:
+        name: Deploy DEV
+        identifier: deployment
+        template:
+          templateRef: K8s_Canary_Rolling_Deploy
+          versionLabel: "1.0"
+          templateInputs:
+            type: Deployment
+            spec:
+              service:
+                serviceInputs:
+                  serviceDefinition:
+                    type: Kubernetes
+                    spec:
+                      artifacts:
+                        primary:
+                          primaryArtifactRef: <+input>
+                          sources: <+input>
+              environment:
+                infrastructureDefinitions:
+                  - identifier: dev
+    - stage:
+        name: Deploy UAT
+        identifier: Deploy_UAT
+        template:
+          templateRef: K8s_Canary_Rolling_Deploy
+          versionLabel: "1.0"
+          templateInputs:
+            type: Deployment
+            spec:
+              service:
+                serviceInputs:
+                  serviceDefinition:
+                    type: Kubernetes
+                    spec:
+                      artifacts:
+                        primary:
+                          primaryArtifactRef: <+input>
+                          sources: <+input>
+              environment:
+                infrastructureDefinitions:
+                  - identifier: uat
     - stage:
         name: Approval PROD
         identifier: Approval_PROD
