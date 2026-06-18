@@ -1,0 +1,80 @@
+template:
+  name: K8s Canary Rolling Deploy
+  identifier: K8s_Canary_Rolling_Deploy
+  versionLabel: "1.0"
+  type: Stage
+  projectIdentifier: default_project
+  orgIdentifier: default
+  spec:
+    type: Deployment
+    spec:
+      deploymentType: Kubernetes
+      service:
+        serviceRef: petclinic
+        serviceInputs:
+          serviceDefinition:
+            type: Kubernetes
+            spec:
+              artifacts:
+                primary:
+                  primaryArtifactRef: <+input>
+                  sources: <+input>
+      environment:
+        environmentRef: dev_petclinic
+        deployToAll: false
+        infrastructureDefinitions:
+          - identifier: <+input>
+      execution:
+        steps:
+          - stepGroup:
+              name: Canary Deployment
+              identifier: canaryDeployment
+              steps:
+                - step:
+                    name: Canary Deployment
+                    identifier: canaryDeployment
+                    type: K8sCanaryDeploy
+                    timeout: 10m
+                    spec:
+                      instanceSelection:
+                        type: Count
+                        spec:
+                          count: 1
+                      skipDryRun: false
+                - step:
+                    name: Canary Delete
+                    identifier: canaryDelete
+                    type: K8sCanaryDelete
+                    timeout: 10m
+                    spec: {}
+          - stepGroup:
+              name: Primary Deployment
+              identifier: primaryDeployment
+              steps:
+                - step:
+                    name: Rolling Deployment
+                    identifier: rollingDeployment
+                    type: K8sRollingDeploy
+                    timeout: 10m
+                    spec:
+                      skipDryRun: false
+        rollbackSteps:
+          - step:
+              name: Canary Delete
+              identifier: rollbackCanaryDelete
+              type: K8sCanaryDelete
+              timeout: 10m
+              spec: {}
+          - step:
+              name: Rolling Rollback
+              identifier: rollingRollback
+              type: K8sRollingRollback
+              timeout: 10m
+              spec: {}
+    tags: {}
+    failureStrategies:
+      - onFailure:
+          errors:
+            - AllErrors
+          action:
+            type: StageRollback

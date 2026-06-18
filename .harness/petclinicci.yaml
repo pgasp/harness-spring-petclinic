@@ -67,149 +67,45 @@ pipeline:
       - stage:
           name: Deploy DEV
           identifier: deployment
-          description: ""
-          type: Deployment
-          spec:
-            deploymentType: Kubernetes
-            service:
-              serviceRef: petclinic
-              serviceInputs:
-                serviceDefinition:
-                  type: Kubernetes
-                  spec:
-                    artifacts:
-                      primary:
-                        primaryArtifactRef: <+input>
-                        sources: <+input>
-            environment:
-              environmentRef: dev_petclinic
-              deployToAll: false
-              infrastructureDefinitions:
-                - identifier: dev
-            execution:
-              steps:
-                - stepGroup:
-                    name: Canary Deployment
-                    identifier: canaryDeployment
-                    steps:
-                      - step:
-                          name: Canary Deployment
-                          identifier: canaryDeployment
-                          type: K8sCanaryDeploy
-                          timeout: 10m
-                          spec:
-                            instanceSelection:
-                              type: Count
-                              spec:
-                                count: 1
-                            skipDryRun: false
-                      - step:
-                          name: Canary Delete
-                          identifier: canaryDelete
-                          type: K8sCanaryDelete
-                          timeout: 10m
-                          spec: {}
-                - stepGroup:
-                    name: Primary Deployment
-                    identifier: primaryDeployment
-                    steps:
-                      - step:
-                          name: Rolling Deployment
-                          identifier: rollingDeployment
-                          type: K8sRollingDeploy
-                          timeout: 10m
-                          spec:
-                            skipDryRun: false
-              rollbackSteps:
-                - step:
-                    name: Canary Delete
-                    identifier: rollbackCanaryDelete
-                    type: K8sCanaryDelete
-                    timeout: 10m
-                    spec: {}
-                - step:
-                    name: Rolling Rollback
-                    identifier: rollingRollback
-                    type: K8sRollingRollback
-                    timeout: 10m
-                    spec: {}
-          tags: {}
-          failureStrategies:
-            - onFailure:
-                errors:
-                  - AllErrors
-                action:
-                  type: StageRollback
+          template:
+            templateRef: K8s_Canary_Rolling_Deploy
+            versionLabel: "1.0"
+            templateInputs:
+              type: Deployment
+              spec:
+                service:
+                  serviceInputs:
+                    serviceDefinition:
+                      type: Kubernetes
+                      spec:
+                        artifacts:
+                          primary:
+                            primaryArtifactRef: <+input>
+                            sources: <+input>
+                environment:
+                  infrastructureDefinitions:
+                    - identifier: dev
       - stage:
           name: Deploy UAT
           identifier: Deploy_UAT
-          description: ""
-          type: Deployment
-          spec:
-            deploymentType: Kubernetes
-            service:
-              serviceRef: petclinic
-              serviceInputs:
-                serviceDefinition:
-                  type: Kubernetes
-                  spec:
-                    artifacts:
-                      primary:
-                        primaryArtifactRef: <+input>
-                        sources: <+input>
-            environment:
-              environmentRef: dev_petclinic
-              deployToAll: false
-              infrastructureDefinitions:
-                - identifier: uat
-            execution:
-              steps:
-                - stepGroup:
-                    name: Canary Deployment
-                    identifier: canaryDeployment
-                    steps:
-                      - step:
-                          name: Canary Deployment
-                          identifier: canaryDeployment
-                          type: K8sCanaryDeploy
-                          timeout: 10m
-                          spec:
-                            instanceSelection:
-                              type: Count
-                              spec:
-                                count: 1
-                            skipDryRun: false
-                      - step:
-                          name: Canary Delete
-                          identifier: canaryDelete
-                          type: K8sCanaryDelete
-                          timeout: 10m
-                          spec: {}
-                - stepGroup:
-                    name: Primary Deployment
-                    identifier: primaryDeployment
-                    steps:
-                      - step:
-                          name: Rolling Deployment
-                          identifier: rollingDeployment
-                          type: K8sRollingDeploy
-                          timeout: 10m
-                          spec:
-                            skipDryRun: false
-              rollbackSteps:
-                - step:
-                    name: Rolling Rollback
-                    identifier: rollingRollback
-                    type: K8sRollingRollback
-                    timeout: 10m
-                    spec: {}
-          tags: {}
-          failureStrategies:
-            - onFailure:
-                errors:
-                  - AllErrors
-                action:
-                  type: StageRollback
+          template:
+            templateRef: K8s_Canary_Rolling_Deploy
+            versionLabel: "1.0"
+            templateInputs:
+              type: Deployment
+              spec:
+                service:
+                  serviceInputs:
+                    serviceDefinition:
+                      type: Kubernetes
+                      spec:
+                        artifacts:
+                          primary:
+                            primaryArtifactRef: <+input>
+                            sources: <+input>
+                environment:
+                  infrastructureDefinitions:
+                    - identifier: uat
     - stage:
         name: Approval PROD
         identifier: Approval_PROD
@@ -241,76 +137,21 @@ pipeline:
     - stage:
         name: Deploy PROD
         identifier: Deploy_PROD
-        description: ""
-        type: Deployment
-        spec:
-          deploymentType: Kubernetes
-          service:
-            serviceRef: petclinic
-            serviceInputs:
-              serviceDefinition:
-                type: Kubernetes
-                spec:
-                  artifacts:
-                    primary:
-                      primaryArtifactRef: <+input>
-                      sources: <+input>
-          environment:
-            environmentRef: dev_petclinic
-            deployToAll: false
-            infrastructureDefinitions:
-              - identifier: prod
-          execution:
-            steps:
-              - stepGroup:
-                  name: Canary Deployment
-                  identifier: canaryDeployment
-                  steps:
-                    - step:
-                        name: Canary Deployment
-                        identifier: canaryDeployment
-                        type: K8sCanaryDeploy
-                        timeout: 10m
-                        spec:
-                          instanceSelection:
-                            type: Count
-                            spec:
-                              count: 1
-                          skipDryRun: false
-                    - step:
-                        name: Canary Delete
-                        identifier: canaryDelete
-                        type: K8sCanaryDelete
-                        timeout: 10m
-                        spec: {}
-              - stepGroup:
-                  name: Primary Deployment
-                  identifier: primaryDeployment
-                  steps:
-                    - step:
-                        name: Rolling Deployment
-                        identifier: rollingDeployment
-                        type: K8sRollingDeploy
-                        timeout: 10m
-                        spec:
-                          skipDryRun: false
-            rollbackSteps:
-              - step:
-                  name: Canary Delete
-                  identifier: rollbackCanaryDelete
-                  type: K8sCanaryDelete
-                  timeout: 10m
-                  spec: {}
-              - step:
-                  name: Rolling Rollback
-                  identifier: rollingRollback
-                  type: K8sRollingRollback
-                  timeout: 10m
-                  spec: {}
-        tags: {}
-        failureStrategies:
-          - onFailure:
-              errors:
-                - AllErrors
-              action:
-                type: StageRollback
+        template:
+          templateRef: K8s_Canary_Rolling_Deploy
+          versionLabel: "1.0"
+          templateInputs:
+            type: Deployment
+            spec:
+              service:
+                serviceInputs:
+                  serviceDefinition:
+                    type: Kubernetes
+                    spec:
+                      artifacts:
+                        primary:
+                          primaryArtifactRef: <+input>
+                          sources: <+input>
+              environment:
+                infrastructureDefinitions:
+                  - identifier: prod
