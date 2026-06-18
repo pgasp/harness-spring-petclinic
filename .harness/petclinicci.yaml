@@ -67,9 +67,9 @@ pipeline:
                       domain: docker.io
                     resources:
                       limits:
-                        memory: 4Gi
-                      requests:
                         memory: 2Gi
+                      requests:
+                        memory: 1Gi
     - stage:
         name: Deploy DEV
         identifier: deployment
