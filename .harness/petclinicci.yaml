@@ -65,6 +65,11 @@ pipeline:
                       access_token: <+secrets.getValue("docker_hub")>
                       name: pgasp/harness-spring-petclinic
                       domain: docker.io
+                    resources:
+                      limits:
+                        memory: 4Gi
+                      requests:
+                        memory: 2Gi
     - stage:
         name: Deploy DEV
         identifier: deployment
