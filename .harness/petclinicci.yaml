@@ -83,7 +83,7 @@ pipeline:
                           sources: <+input>
               environment:
                 infrastructureDefinitions:
-                  - identifier: <+input>
+                  - identifier: dev
     - stage:
         name: Deploy UAT
         identifier: Deploy_UAT
@@ -104,7 +104,7 @@ pipeline:
                           sources: <+input>
               environment:
                 infrastructureDefinitions:
-                  - identifier: <+input>
+                  - identifier: uat
     - stage:
         name: Approval PROD
         identifier: Approval_PROD
@@ -153,4 +153,4 @@ pipeline:
                           sources: <+input>
               environment:
                 infrastructureDefinitions:
-                  - identifier: <+input>
+                  - identifier: prod
