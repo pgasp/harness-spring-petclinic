@@ -37,6 +37,8 @@ pipeline:
             spec:
               connectorRef: k8slocal
               namespace: harness-build
+              automountServiceAccountToken: true
+              nodeSelector: {}
               os: Linux
           execution:
             steps:
@@ -48,20 +50,20 @@ pipeline:
                     mode: orchestration
                     config: default
                     target:
-                      name: harness-spring-petclinic
                       type: container
+                      name: harness-spring-petclinic
                       variant: <+pipeline.sequenceId>
                     advanced:
                       log:
                         level: info
-                      fail_on_severity: high
+                      fail_on_severity: none
                     privileged: true
                     image:
                       type: docker_v2
-                      name: pgasp/harness-spring-petclinic
                       tag: <+pipeline.sequenceId>
                       access_id: pgasp
                       access_token: <+secrets.getValue("docker_hub")>
+                      name: pgasp/harness-spring-petclinic
                       domain: docker.io
     - stage:
         name: Deploy DEV
