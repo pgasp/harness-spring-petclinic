@@ -88,10 +88,9 @@ pipeline:
                         primary:
                           primaryArtifactRef: <+input>
                           sources: <+input>
-          variables:
-            - name: infraIdentifier
-              type: String
-              value: dev
+              environment:
+                infrastructureDefinitions:
+                  - identifier: dev
     - stage:
         name: Deploy UAT
         identifier: Deploy_UAT
@@ -110,10 +109,9 @@ pipeline:
                         primary:
                           primaryArtifactRef: <+input>
                           sources: <+input>
-          variables:
-            - name: infraIdentifier
-              type: String
-              value: uat
+              environment:
+                infrastructureDefinitions:
+                  - identifier: uat
     - stage:
         name: Approval PROD
         identifier: Approval_PROD
@@ -160,7 +158,6 @@ pipeline:
                         primary:
                           primaryArtifactRef: <+input>
                           sources: <+input>
-          variables:
-            - name: infraIdentifier
-              type: String
-              value: prod
+              environment:
+                infrastructureDefinitions:
+                  - identifier: prod

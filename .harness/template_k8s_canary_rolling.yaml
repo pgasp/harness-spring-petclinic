@@ -22,8 +22,7 @@ template:
       environment:
         environmentRef: dev_petclinic
         deployToAll: false
-        infrastructureDefinitions:
-          - identifier: <+stage.variables.infraIdentifier>
+        infrastructureDefinitions: <+input>
       execution:
         steps:
           - stepGroup:
@@ -71,10 +70,6 @@ template:
               type: K8sRollingRollback
               timeout: 10m
               spec: {}
-    variables:
-      - name: infraIdentifier
-        type: String
-        value: <+input>
     tags: {}
     failureStrategies:
       - onFailure:
