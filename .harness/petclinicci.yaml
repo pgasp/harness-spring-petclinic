@@ -89,6 +89,7 @@ pipeline:
                           primaryArtifactRef: <+input>
                           sources: <+input>
               environment:
+                environmentRef: dev_petclinic
                 infrastructureDefinitions:
                   - identifier: dev
     - stage:
@@ -110,6 +111,7 @@ pipeline:
                           primaryArtifactRef: <+input>
                           sources: <+input>
               environment:
+                environmentRef: dev_petclinic
                 infrastructureDefinitions:
                   - identifier: uat
     - stage:
@@ -159,5 +161,6 @@ pipeline:
                           primaryArtifactRef: <+input>
                           sources: <+input>
               environment:
+                environmentRef: dev_petclinic
                 infrastructureDefinitions:
                   - identifier: prod

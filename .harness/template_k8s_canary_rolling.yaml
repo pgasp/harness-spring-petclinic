@@ -20,7 +20,7 @@ template:
                   primaryArtifactRef: <+input>
                   sources: <+input>
       environment:
-        environmentRef: dev_petclinic
+        environmentRef: <+input>
         deployToAll: false
         infrastructureDefinitions: <+input>
       execution:
